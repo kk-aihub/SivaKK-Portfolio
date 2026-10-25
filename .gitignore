@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+*.local
+/.claude
+sushmita-the-series.zip
+src/data/portfolio copy.ts
