@@ -1,7 +1,8 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { profile } from '../data/portfolio';
+import { playOpeningChime } from '../audio/openingChime';
 import { useReducedMotionPref } from '../hooks/useMedia';
 import { EASE, Magnetic } from './fx';
 
@@ -26,6 +27,9 @@ export default function OpeningSequence({
 }) {
   const reduced = useReducedMotionPref();
   const [beat, setBeat] = useState(reduced ? 6 : 0);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const startedAt = useRef(performance.now());
+  const stopSound = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -39,12 +43,35 @@ export default function OpeningSequence({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Enter') onDone();
+      const isButton = e.target instanceof HTMLButtonElement;
+      if (e.key === 'Escape' || (e.key === 'Enter' && !isButton)) onDone();
     };
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onDone]);
+
+  useEffect(() => {
+    return () => stopSound.current?.();
+  }, []);
+
+  const enableSound = async () => {
+    const nameRevealAt = reduced ? 0 : TIMELINE[1].at;
+    const elapsed = performance.now() - startedAt.current;
+    const stop = await playOpeningChime(Math.max(0, nameRevealAt - elapsed));
+
+    if (stop) {
+      stopSound.current?.();
+      stopSound.current = stop;
+      setSoundEnabled(true);
+    }
+  };
+
+  const disableSound = () => {
+    stopSound.current?.();
+    stopSound.current = null;
+    setSoundEnabled(false);
+  };
 
   return (
     <motion.div
@@ -58,6 +85,20 @@ export default function OpeningSequence({
       role="dialog"
       aria-label="Opening titles"
     >
+      <button
+        type="button"
+        aria-pressed={soundEnabled}
+        onClick={() => void (soundEnabled ? disableSound() : enableSound())}
+        className="
+          absolute left-4 top-[calc(7vh+12px)] z-40
+          rounded-full border border-white/20 px-4 py-2
+          font-sans text-[11px] font-semibold tracking-[0.2em]
+          text-mist transition hover:border-white/60 hover:text-bone
+        "
+      >
+        SOUND {soundEnabled ? 'ON' : 'OFF'}
+      </button>
+
       {/* Letterbox bars */}
       <motion.div
         className="absolute inset-x-0 top-0 z-30 h-[7vh] bg-black"
