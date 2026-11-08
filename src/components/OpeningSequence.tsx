@@ -88,6 +88,7 @@ export default function OpeningSequence({
       <button
         type="button"
         aria-pressed={soundEnabled}
+        aria-label={soundEnabled ? 'Turn off opening sound' : 'Turn on opening sound'}
         onClick={() => void (soundEnabled ? disableSound() : enableSound())}
         className="
           absolute left-4 top-[calc(7vh+12px)] z-40
@@ -96,7 +97,7 @@ export default function OpeningSequence({
           text-mist transition hover:border-white/60 hover:text-bone
         "
       >
-        SOUND {soundEnabled ? 'ON' : 'OFF'}
+        {soundEnabled ? 'SOUND ON' : 'ENABLE SOUND'}
       </button>
 
       {/* Letterbox bars */}
@@ -325,3 +326,4 @@ export default function OpeningSequence({
     </motion.div>
   );
 }
+
